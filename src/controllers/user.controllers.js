@@ -135,7 +135,7 @@ const loginUser = asyncHandler(async(req,res) =>{
 
    const {accessToken, refreshToken} = await generateAccessAndRefreshTokens(user._id)
    
-   const loggedInUser = await User.findById(user._id).select("-password -refreshtoken")
+   const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
 
    const options={
       httpOnly : true,
@@ -156,26 +156,27 @@ const loginUser = asyncHandler(async(req,res) =>{
 
 const loggedOutUser = asyncHandler(async(req,res) =>{
     await User.findByIdAndUpdate(
-      req.user._id,{
-        $set:{
-          refreshToken:undefined
+        req.user._id,
+        {
+            $unset: {
+                refreshToken: 1 // this removes the field from document
+            }
+        },
+        {
+            new: true
         }
-      },{
-        new:true,
-      }
-     )
+    )
 
-     const options ={
-      httpOnly:true,
-      secure:true,
-     }
+    const options = {
+        httpOnly: true,
+        secure: true
+    }
 
-     return res.status(200)
-     .cookie("accessToken", accessToken, options)
-    .cookie("refreshToken", refreshToken, options)
-     .json(
-      new ApiResponse(200, {}, "Log Out Succesfully")
-     )
+    return res
+    .status(200)
+    .clearCookie("accessToken", options)
+    .clearCookie("refreshToken", options)
+    .json(new ApiResponse(200, {}, "User logged Out"))
 })
 
 const refreshAccessToken = asyncHandler(async(req, res) =>{
@@ -409,13 +410,70 @@ const getUserChannelProfile = asyncHandler(async(req,res)=>{
     new ApiResponse(200, channel[0], "User channel fetched Successfully")
    )
 
-
+  
 })
+
+const getWatchHistory = asyncHandler(async(req,res)=>{
+     const user = await User.aggregate([
+      {
+        $match:{
+          _id : new mongooose.Types.ObjectId(req.user?.id)  // user mil gya user.models.js  se
+        }
+      },
+      {
+        $lookup:{
+          from:"videos",
+          localField:"watchHistory",
+          foreignField:_id,
+          as:"watchHistory", // iske andar bhut saare document aa gye h ab videos me se
+          pipeline:[
+            {
+              $lookup:{
+                from:"users",
+                localField:"owner", // jha hum hote hein
+                foreignField:"_id",
+                as:"owner", // is array me user ki saari field aa chuki h jo necessary h whi do
+          pipeline:[
+            {
+              $project:{
+                fullName:1,
+                username:1,
+                avatar:1
+              }
+            }
+          ]
+              } 
+            },
+            {
+              $addFields:{
+                owner:{
+                  $first:"$owner"
+                }
+              }
+            }
+          ]
+        }
+      },
+
+
+     ])
+
+     return res.status(200)
+     .json(
+      new ApiResponse(200, 
+        user[0].watchHistory, 
+        "watch history fetched successfully"
+      )
+     )
+})
+
+
+
 
 
 export { registerUser, loginUser,  loggedOutUser, refreshAccessToken, 
   changeCurrentPassword,
    getCurrentUser, updateAccountDetails, 
    updateUseravatar, updateUsercoverImgae, 
-  getUserChannelProfile } 
+  getUserChannelProfile, getWatchHistory } 
 
