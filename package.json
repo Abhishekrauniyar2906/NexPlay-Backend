@@ -1,9 +1,9 @@
 {
-  "name": "backend",
+  "name": "backend-with-abhishek-rauniyar",
   "version": "1.0.0",
-  "description": "",
+  "description": "nexplay-online-video-streaming-platform",
   "license": "ISC",
-  "author": "",
+  "author": "abhishek-rauniyar",
   "type": "module",
   "main": "index.js",
   "scripts": {
