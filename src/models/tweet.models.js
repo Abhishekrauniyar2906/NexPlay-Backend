@@ -14,7 +14,7 @@ const tweetSchema = new Schema(
      }
 
     },
-
+ 
     {
         timestamps:true
     }
