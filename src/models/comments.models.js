@@ -42,5 +42,3 @@ export const Comment = mongoose.model("Comment", commentSchema);
 
 
 
-
-videoSchema.plugin(mongooseAggregatePaginate)
