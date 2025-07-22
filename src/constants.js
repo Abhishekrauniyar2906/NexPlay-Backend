@@ -1,2 +1,2 @@
-export const DB_NAME="Nexplay — Watch Next";
+export const DB_NAME="NexPlay";
 
